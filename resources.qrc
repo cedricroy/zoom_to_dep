@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/zoom_to_dep" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
