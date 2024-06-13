@@ -67,7 +67,7 @@ class ZoomToDep:
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
-
+        
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """Get the translation for a string using Qt translation API.
@@ -160,7 +160,6 @@ class ZoomToDep:
 
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        print('initGui')
         icon_path = ':/plugins/zoom_to_dep/icon.png'
         self.add_action(
             icon_path,
@@ -182,6 +181,16 @@ class ZoomToDep:
             self.iface.removeToolBarIcon(action)
 
 
+    def zoom(self):
+        current_item = self.dlg.depListWidget.currentItem() 
+        dep_selection = current_item.text()
+        layer = self.iface.activeLayer()
+        expression = f'"nom" = \'{dep_selection}\''
+        print(expression)
+        layer.selectByExpression(expression)
+        self.iface.actionZoomToSelected().trigger()
+
+    
     def run(self):
         """Run method that performs all the real work"""
         print('run')
@@ -191,9 +200,20 @@ class ZoomToDep:
         if self.first_start == True:
             self.first_start = False
             self.dlg = ZoomToDepDialog()
+            self.dlg.zoomPushButton.clicked.connect(self.zoom)
+            self.dlg.depListWidget.setSortingEnabled(True)
+            self.dlg.depListWidget.itemDoubleClicked.connect(self.zoom)
+
+        self.dlg.depListWidget.clear()    
+
+        # remplir le listwidget
+        for feature in self.iface.activeLayer().getFeatures():
+            self.dlg.depListWidget.addItem(feature["nom"])
+        
 
         # show the dialog
         self.dlg.show()
+        
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
